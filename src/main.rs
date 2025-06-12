@@ -2,7 +2,7 @@
 
 use std::{
     cmp::Ordering,
-    ops::{Add, Neg},
+    ops::{Add, Neg, Sub},
 };
 
 /// A whole number with base 2^64.
@@ -120,6 +120,12 @@ impl Neg for Number {
         self.normalize()
     }
 }
+impl Sub for Number {
+    type Output = Self;
+    fn sub(self, rhs: Self) -> Self::Output {
+        self + -rhs
+    }
+}
 
 fn main() {
     todo!()
@@ -171,7 +177,7 @@ mod tests {
     fn subtraction_bigger_smaller() {
         let a = Number::new(true, vec![0, 1]); // 2^64
         let b = Number::new(true, vec![1]); // 1
-        let result = a + Number::new(false, vec![1]); // 2^64 - 1
+        let result = a - b; // 2^64 - 1
         assert_eq!(result, Number::new(true, vec![u64::MAX]));
     }
 
