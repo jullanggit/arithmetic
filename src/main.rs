@@ -55,15 +55,17 @@ impl Ord for Number {
         match (self.positive, other.positive) {
             (true, false) => Ordering::Greater,
             (false, true) => Ordering::Less,
-            // self and other have the same sign
+            // compare number of digits
             (true, true) | (false, false) => match self.digits.len().cmp(&other.digits.len()) {
                 Ordering::Equal => {
+                    // compare the actual numbers
                     let cmp = self.cmp_abs(other);
                     if self.positive { cmp } else { cmp.reverse() }
                 }
                 other => {
                     if self.positive {
                         other
+                    // flip comparison if both are negatie
                     } else {
                         other.reverse()
                     }
@@ -179,6 +181,46 @@ mod tests {
         let b = Number::new(true, vec![1]); // 1
         let result = a - b; // 2^64 - 1
         assert_eq!(result, Number::new(true, vec![u64::MAX]));
+    }
+
+    #[test]
+    fn subtraction_smaller_bigger() {
+        let a = Number::new(true, vec![1]); // 1
+        let b = Number::new(true, vec![0, 1]); // 2^64
+        let result = a - b; // 1 - 2^64 = -(2^64 - 1)
+        assert_eq!(result, Number::new(false, vec![u64::MAX]));
+    }
+
+    #[test]
+    fn subtraction_negative_and_positive() {
+        let a = Number::new(false, vec![50]); // -50
+        let b = Number::new(true, vec![20]); // 20
+        let result = a - b; // -50 - 20 = -70
+        assert_eq!(result, Number::new(false, vec![70]));
+    }
+
+    #[test]
+    fn subtraction_positive_and_negative() {
+        let a = Number::new(true, vec![20]); // 20
+        let b = Number::new(false, vec![50]); // -50
+        let result = a - b; // 20 - (-50) = 70
+        assert_eq!(result, Number::new(true, vec![70]));
+    }
+
+    #[test]
+    fn subtraction_negative_and_negative() {
+        let a = Number::new(false, vec![30]); // -30
+        let b = Number::new(false, vec![10]); // -10
+        let result = a - b; // -30 - (-10) = -20
+        assert_eq!(result, Number::new(false, vec![20]));
+    }
+
+    #[test]
+    fn subtraction_with_borrow_across_digits() {
+        let a = Number::new(true, vec![0, 1]); // 2^64
+        let b = Number::new(true, vec![1, 1]); // 2^64 + 1
+        let result = a - b; // (2^64) - (2^64 + 1) = -1
+        assert_eq!(result, Number::new(false, vec![1]));
     }
 
     #[test]
